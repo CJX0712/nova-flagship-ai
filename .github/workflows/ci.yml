@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 单元 + 集成测试（81 项）
+        run: node --test
+      - name: 金标回归
+        run: node src/cli.js eval
+      - name: 环境自检
+        run: node src/cli.js doctor

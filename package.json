@@ -1,0 +1,21 @@
+{
+  "name": "nova-flagship-ai",
+  "version": "1.0.0",
+  "description": "NovaFlagship 创新旗舰 AI —— 零运行时依赖的智能体引擎：OpenAI 兼容网关、MCP 工具协议、三段式记忆、混合检索(RRF)、确定性回放验证。",
+  "type": "module",
+  "author": "晨星 <CJX0712@users.noreply.github.com>",
+  "license": "MIT",
+  "engines": { "node": ">=20.0.0" },
+  "bin": { "nova": "src/cli.js" },
+  "scripts": {
+    "test": "node --test tests/",
+    "serve": "node src/cli.js serve",
+    "chat": "node src/cli.js chat",
+    "eval": "node src/cli.js eval",
+    "doctor": "node src/cli.js doctor",
+    "quickstart": "node examples/quickstart.mjs"
+  },
+  "keywords": ["ai", "agent", "llm", "rag", "mcp", "zero-dependency", "replay", "nova", "flagship"],
+  "repository": { "type": "git", "url": "https://github.com/CJX0712/nova-flagship-ai.git" },
+  "homepage": "https://github.com/CJX0712/nova-flagship-ai"
+}

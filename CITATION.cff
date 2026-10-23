@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "如果您使用了本项目，请按如下方式引用"
+title: "NovaFlagship 创新旗舰 AI —— 零依赖智能体引擎"
+abstract: "零运行时依赖的 AI 智能体引擎：OpenAI 兼容模型网关、MCP 工具协议、三段式记忆、BM25⊕稠密⊕RRF 混合检索、确定性回放验证。"
+authors:
+  - family-names: "晨星"
+    given-names: ""
+    alias: CJX0712
+    orcid: "https://github.com/CJX0712"
+version: 1.0.0
+date-released: 2026-10-24
+license: MIT
+repository-code: "https://github.com/CJX0712/nova-flagship-ai"
+keywords:
+  - ai
+  - agent
+  - llm
+  - rag
+  - mcp
+  - zero-dependency
+  - deterministic-replay

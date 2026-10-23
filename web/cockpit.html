@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaFlagship · 创新旗舰驾驶舱</title>
+<style>
+  :root {
+    --bg: #0b0e14; --panel: #121722; --panel2: #0e1320; --border: #1f2a3a;
+    --text: #e6edf7; --dim: #8b98ad; --accent: #6c8cff; --accent2: #38d9a9;
+    --warn: #ffb454; --err: #ff6b6b; --mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+  }
+  html[data-theme="light"] {
+    --bg: #f4f6fa; --panel: #ffffff; --panel2: #eef1f7; --border: #d8dee9;
+    --text: #1a2233; --dim: #5b6678; --accent: #3b5bdb; --accent2: #0ca678;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.6 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; height: 100vh; display: flex; flex-direction: column; }
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  .logo { font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+  .logo b { color: var(--accent); }
+  .tag { font-size: 11px; color: var(--dim); border: 1px solid var(--border); border-radius: 99px; padding: 1px 10px; }
+  .spacer { flex: 1; }
+  button, .btn { background: var(--panel2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  nav { display: flex; gap: 4px; padding: 8px 18px 0; background: var(--panel); border-bottom: 1px solid var(--border); }
+  nav button { border: none; background: none; color: var(--dim); border-bottom: 2px solid transparent; border-radius: 0; padding: 8px 14px; }
+  nav button.active { color: var(--text); border-bottom-color: var(--accent); }
+  main { flex: 1; overflow: hidden; display: flex; }
+  .panel { display: none; flex: 1; overflow: auto; padding: 18px; }
+  .panel.active { display: block; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .card h3 { font-size: 13px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  #chatlog { display: flex; flex-direction: column; gap: 10px; padding: 4px 2px; }
+  .msg { max-width: 82%; padding: 10px 14px; border-radius: 12px; white-space: pre-wrap; word-break: break-word; }
+  .msg.user { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.bot { align-self: flex-start; background: var(--panel2); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .msg.sys { align-self: center; background: none; color: var(--dim); font-size: 12px; border: 1px dashed var(--border); }
+  .msg .meta { display: block; margin-top: 6px; font-size: 11px; color: var(--dim); }
+  .msg.user .meta { color: rgba(255,255,255,.75); }
+  #chatform { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--border); background: var(--panel); }
+  #chatform input { flex: 1; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; }
+  #chatform input:focus { border-color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--dim); font-weight: 600; font-size: 12px; }
+  td.mono, .mono { font-family: var(--mono); font-size: 12px; }
+  .pill { display: inline-block; padding: 1px 9px; border-radius: 99px; font-size: 11px; border: 1px solid var(--border); color: var(--dim); }
+  .pill.ok { color: var(--accent2); border-color: var(--accent2); }
+  .pill.bad { color: var(--err); border-color: var(--err); }
+  .pill.warn { color: var(--warn); border-color: var(--warn); }
+  .trace-event { display: flex; gap: 10px; padding: 6px 10px; border-left: 2px solid var(--border); margin-left: 8px; position: relative; }
+  .trace-event::before { content: ""; position: absolute; left: -6px; top: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .trace-event.t-tool_call::before { background: var(--warn); }
+  .trace-event.t-answer::before { background: var(--accent2); }
+  .trace-event .t { color: var(--dim); font-family: var(--mono); font-size: 11px; min-width: 70px; }
+  .trace-event .p { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  .kv { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed var(--border); font-size: 13px; }
+  .kv span:first-child { color: var(--dim); }
+  label { font-size: 12px; color: var(--dim); display: block; margin: 8px 0 4px; }
+  input[type="text"], select { width: 100%; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; color: var(--text); outline: none; }
+  .hint { color: var(--dim); font-size: 12px; margin-top: 6px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">✦ Nova<b>Flagship</b></div>
+  <span class="tag" id="ver">v1.0.0</span>
+  <span class="tag" id="health">连接中…</span>
+  <div class="spacer"></div>
+  <button onclick="toggleTheme()" id="themeBtn">🌓 主题</button>
+</header>
+<nav>
+  <button class="active" data-p="chat">对话</button>
+  <button data-p="trace">轨迹</button>
+  <button data-p="memory">记忆</button>
+  <button data-p="eval">评估</button>
+  <button data-p="ops">微操作</button>
+  <button data-p="settings">设置</button>
+</nav>
+<main>
+  <!-- 对话 -->
+  <section class="panel active" id="p-chat">
+    <div class="card" style="margin-bottom:8px">
+      <div id="chatlog"><div class="msg sys">NovaFlagship 驾驶舱就绪。默认走智能体（ReAct）链路；设置里可切直连模式。</div></div>
+    </div>
+  </section>
+  <form id="chatform" onsubmit="return sendChat(event)">
+    <input id="chatinput" type="text" placeholder="输入任务，例如：帮我算 (3+4)*2^10 ｜ @recall 记忆 ｜ @tool calc {&quot;expression&quot;:&quot;2^10&quot;}" autocomplete="off">
+    <button class="primary" type="submit">发送</button>
+  </form>
+
+  <!-- 轨迹 -->
+  <section class="panel" id="p-trace">
+    <div class="card">
+      <h3>智能体轨迹（确定性回放验证）</h3>
+      <div id="tracesummary" class="hint">在「对话」里发起一个任务后，这里展示逐步决策轨迹。</div>
+    </div>
+    <div class="card"><h3>事件流</h3><div id="tracelist"></div></div>
+  </section>
+
+  <!-- 记忆 -->
+  <section class="panel" id="p-memory">
+    <div class="card">
+      <h3>混合检索（BM25 ⊕ 稠密 ⊕ RRF）</h3>
+      <form onsubmit="return recallMemory(event)" style="display:flex;gap:8px">
+        <input id="recallq" type="text" placeholder="输入查询词，如：旗舰 架构" style="flex:1">
+        <button class="primary">召回</button>
+      </form>
+      <div id="recallout" class="hint" style="margin-top:10px">输入查询后展示命中（含 dense/lexical 来源标注与融合分）。</div>
+    </div>
+    <div class="card">
+      <h3>写入记忆</h3>
+      <form onsubmit="return storeMemory(event)" style="display:flex;gap:8px">
+        <input id="storetext" type="text" placeholder="要记住的事实…" style="flex:1">
+        <button>存入</button>
+      </form>
+      <div id="memstats" class="hint" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+  <!-- 评估 -->
+  <section class="panel" id="p-eval">
+    <div class="card">
+      <h3>金标回归（浏览器侧烟测）</h3>
+      <button class="primary" onclick="runEval()">运行 3 项金标</button>
+      <div id="evalout" class="hint" style="margin-top:10px">对固定任务断言：工具调用、finishReason、预算不超限。</div>
+    </div>
+  </section>
+
+  <!-- 微操作 -->
+  <section class="panel" id="p-ops">
+    <div class="card">
+      <h3>微操作目录（第十层分类法种子）</h3>
+      <table id="opstable"><thead><tr><th>ID</th><th>名称</th><th>说明</th></tr></thead><tbody></tbody></table>
+    </div>
+  </section>
+
+  <!-- 设置 -->
+  <section class="panel" id="p-settings">
+    <div class="grid2">
+      <div class="card">
+        <h3>连接</h3>
+        <label>API 基础地址</label>
+        <input type="text" id="baseurl" value={window.location.origin}">
+        <label>模型（留空 = 默认提供商）</label>
+        <input type="text" id="model" placeholder="nova-lite / gpt-4o-mini / deepseek-chat …">
+        <label>模式</label>
+        <select id="mode"><option value="agent">智能体（ReAct + 工具 + 记忆）</option><option value="direct">直连模型（/v1/chat/completions）</option></select>
+        <div class="hint">真实模型：设 NOVA_BASE_URL / NOVA_API_KEY / NOVA_PROVIDER 后重启服务即可原位切换，驾驶舱无需改动。</div>
+      </div>
+      <div class="card">
+        <h3>系统状态</h3>
+        <div id="healthpanel"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const state = { lastTrace: null, lastRun: null };
+
+// ---- 主题 ----
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme');
+  document.documentElement.setAttribute('data-theme', cur === 'light' ? '' : 'light');
+  localStorage.setItem('nova-theme', document.documentElement.getAttribute('data-theme') || 'dark');
+}
+document.documentElement.setAttribute('data-theme', localStorage.getItem('nova-theme') || 'dark');
+
+// ---- 导航 ----
+document.querySelectorAll('nav button').forEach((b) =>
+  b.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach((x) => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach((x) => x.classList.remove('active'));
+    b.classList.add('active');
+    $('#p-' + b.dataset.p).classList.add('active');
+    if (b.dataset.p === 'ops') loadOps();
+    if (b.dataset.p === 'memory') refreshMemStats();
+    if (b.dataset.p === 'settings') refreshHealth();
+  })
+);
+
+// ---- 通用 ----
+async function api(path, body) {
+  const res = await fetch(($('#baseurl').value || location.origin) + path, {
+    method: body ? 'POST' : 'GET',
+    headers: body ? { 'content-type': 'application/json' } : {},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+function addMsg(role, text, meta) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  if (meta) { const m = document.createElement('span'); m.className = 'meta'; m.textContent = meta; div.appendChild(m); }
+  $('#chatlog').appendChild(div);
+  div.scrollIntoView({ block: 'end' });
+  return div;
+}
+
+// ---- 对话 ----
+async function sendChat(ev) {
+  ev.preventDefault();
+  const input = $('#chatinput');
+  const task = input.value.trim();
+  if (!task) return false;
+  input.value = '';
+  addMsg('user', task);
+  const bot = addMsg('bot', '…');
+  const started = Date.now();
+  try {
+    if ($('#mode').value === 'direct') {
+      const out = await api('/v1/chat/completions', {
+        model: $('#model').value || undefined,
+        messages: [{ role: 'user', content: task }],
+      });
+      bot.textContent = out.choices[0].message.content;
+      appendMeta(bot, `${out.nova.provider} · ${out.usage.total_tokens} tok · ${Date.now() - started}ms`);
+    } else {
+      const out = await api('/v1/agents', { task, model: $('#model').value || undefined });
+      state.lastTrace = out.trace;
+      bot.textContent = out.answer;
+      appendMeta(bot, `${out.steps} 步 · ${out.usage.totalTokens} tok · $${(out.costUsd || 0).toFixed(5)} · ${out.ms}ms · ${out.finishReason}`);
+      renderTrace(out.trace);
+    }
+  } catch (e) {
+    bot.textContent = '✗ ' + e.message;
+  }
+  return false;
+}
+function appendMeta(el, text) {
+  const m = document.createElement('span');
+  m.className = 'meta';
+  m.textContent = text;
+  el.appendChild(m);
+}
+
+// ---- 轨迹 ----
+function renderTrace(trace) {
+  $('#tracesummary').textContent = `共 ${trace.events.length} 个事件`;
+  const list = $('#tracelist');
+  list.innerHTML = '';
+  for (const ev of trace.events) {
+    const div = document.createElement('div');
+    div.className = 'trace-event t-' + ev.type;
+    const t = document.createElement('span'); t.className = 't'; t.textContent = '#' + ev.seq + ' ' + ev.type;
+    const p = document.createElement('span'); p.className = 'p';
+    p.textContent = ev.type === 'llm'
+      ? JSON.stringify(ev.payload.message).slice(0, 400)
+      : ev.type === 'tool_call'
+      ? `${ev.payload.name} ${JSON.stringify(ev.payload.args)}`
+      : ev.type === 'tool_result'
+      ? `${ev.payload.ok ? '✅' : '❌'} ${JSON.stringify(ev.payload.output ?? ev.payload.error).slice(0, 300)}`
+      : JSON.stringify(ev.payload).slice(0, 400);
+    div.append(t, p);
+    list.appendChild(div);
+  }
+}
+
+// ---- 记忆 ----
+async function recallMemory(ev) {
+  ev.preventDefault();
+  const q = $('#recallq').value.trim();
+  if (!q) return false;
+  const out = await api('/v1/memory/recall', { query: q, k: 8 });
+  $('#recallout').innerHTML = out.hits.length
+    ? '<table><thead><tr><th>ID</th><th>文本</th><th>融合分</th><th>dense</th><th>lexical</th><th>来源</th></tr></thead><tbody>' +
+      out.hits.map((h) => `<tr><td class="mono">${h.id}</td><td>${escapeHtml(h.text.slice(0, 90))}</td><td class="mono">${h.score.toFixed(4)}</td><td class="mono">${(h.denseScore ?? 0).toFixed(3)}</td><td class="mono">${(h.lexicalScore ?? 0).toFixed(3)}</td><td>${(h.sources || []).join('+')}</td></tr>`).join('') +
+      '</tbody></table>'
+    : '无命中';
+  return false;
+}
+async function storeMemory(ev) {
+  ev.preventDefault();
+  const text = $('#storetext').value.trim();
+  if (!text) return false;
+  await api('/v1/memory/remember', { text });
+  $('#storetext').value = '';
+  refreshMemStats();
+  return false;
+}
+async function refreshMemStats() {
+  try {
+    const h = await api('/api/health');
+    $('#memstats').textContent = `记忆统计：${JSON.stringify(h.memory)} · 工具 ${h.tools.length} 个 · 微操作 ${h.ops} 项`;
+  } catch (e) { /* 服务未启动 */ }
+}
+function escapeHtml(s) { return s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+// ---- 评估 ----
+const GOLDEN = [
+  { id: 'g1-calc', task: '计算 (3+4)*2^10', checks: { contains: 'calc', tool: 'calc', reason: 'stop' } },
+  { id: 'g2-explicit', task: '@tool calc {"expression":"6*7"}', checks: { contains: '42', tool: 'calc', reason: 'stop' } },
+  { id: 'g3-budget', task: '总结一下旗舰架构的设计原则', checks: { maxSteps: 6 } },
+];
+async function runEval() {
+  const out = $('#evalout');
+  out.innerHTML = '运行中…';
+  const rows = [];
+  for (const g of GOLDEN) {
+    try {
+      const r = await api('/v1/agents', { task: g.task });
+      const fails = [];
+      if (g.checks.contains && !String(r.answer).includes(g.checks.contains)) fails.push(`应答缺 "${g.checks.contains}"`);
+      if (g.checks.tool) {
+        const called = (r.trace.events || []).filter((e) => e.type === 'tool_call').map((e) => e.payload.name);
+        if (!called.includes(g.checks.tool)) fails.push(`未调用 ${g.checks.tool}`);
+      }
+      if (g.checks.reason && r.finishReason !== g.checks.reason) fails.push(`finishReason=${r.finishReason}`);
+      if (g.checks.maxSteps && r.steps > g.checks.maxSteps) fails.push(`步数 ${r.steps}`);
+      rows.push(`<tr><td>${fails.length ? '❌' : '✅'}</td><td class="mono">${g.id}</td><td>${fails.length ? fails.join('；') : '通过'}</td><td class="mono">${r.ms}ms</td></tr>`);
+    } catch (e) {
+      rows.push(`<tr><td>❌</td><td class="mono">${g.id}</td><td colspan="2">${e.message}</td></tr>`);
+    }
+  }
+  out.innerHTML = `<table><thead><tr><th></th><th>用例</th><th>结果</th><th>耗时</th></tr></thead><tbody>${rows.join('')}</tbody></table>`;
+}
+
+// ---- 微操作 ----
+async function loadOps() {
+  const out = await api('/api/ops');
+  $('#opstable tbody').innerHTML = out.ops.map((o) => `<tr><td class="mono">${o.id}</td><td>${o.name}</td><td>${o.desc}</td></tr>`).join('');
+}
+
+// ---- 健康 ----
+async function refreshHealth() {
+  try {
+    const h = await api('/api/health');
+    $('#health').textContent = `● ${h.defaultProvider} · ${h.tools.length} 工具`;
+    $('#health').style.color = 'var(--accent2)';
+    $('#healthpanel').innerHTML = Object.entries({
+      版本: h.version, 提供商: h.providers.join(', '), 默认: h.defaultProvider,
+      工具数: h.tools.length, 记忆: JSON.stringify(h.memory), 微操作: h.ops,
+    }).map(([k, v]) => `<div class="kv"><span>${k}</span><span class="mono">${escapeHtml(String(v))}</span></div>`).join('');
+  } catch (e) {
+    $('#health').textContent = '● 服务未连接';
+    $('#health').style.color = 'var(--err)';
+  }
+}
+refreshHealth();
+</script>
+</body>
+</html>

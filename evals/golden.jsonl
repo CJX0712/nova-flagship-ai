@@ -1,0 +1,6 @@
+{"id": "g1-calc", "task": "计算 (3+4)*2^10", "expect": {"answerContains": "7168", "toolsCalled": ["calc"], "finishReason": "stop", "maxSteps": 6}}
+{"id": "g2-explicit-tool", "task": "@tool calc {\"expression\":\"6*7\"}", "expect": {"answerContains": "42", "toolsCalled": ["calc"], "finishReason": "stop", "maxSteps": 6}}
+{"id": "g3-template", "task": "你好，介绍下你自己", "expect": {"answerContains": "Nova-Lite", "finishReason": "stop", "maxSteps": 6}}
+{"id": "g4-recall", "task": "@recall 旗舰", "expect": {"answerContains": "memory_search", "toolsCalled": ["memory_search"], "finishReason": "stop", "maxSteps": 6}}
+{"id": "g5-store", "task": "@tool memory_store {\"text\":\"NovaFlagship 使用 RRF 融合检索\"}", "expect": {"answerContains": "stored", "toolsCalled": ["memory_store"], "finishReason": "stop", "maxSteps": 6}}
+{"id": "g6-hash", "task": "@tool hash {\"text\":\"nova\"}", "expect": {"answerContains": "digest", "toolsCalled": ["hash"], "finishReason": "stop", "maxSteps": 6}}
